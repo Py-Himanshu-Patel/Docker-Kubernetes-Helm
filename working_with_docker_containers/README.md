@@ -55,7 +55,6 @@ docker search --filter is-automated=true --filter stars=20 alpine
 
 The `--insecure-registry` option for the Docker daemon is provided, which allows us to search/pull/commit images from an insecure registry.
 
-
 ### Pulling an image
 
 To pull an image from the Docker registry, you can either run the following:
@@ -81,7 +80,6 @@ docker image pull --all-tags alpine
 ```
 Once an image gets pulled, it resides on the local cache (storage), so subsequent pulls will
 be very fast.
-
 
 ### Listing images
 We can list the images that are available on the system by running the Docker daemon.
@@ -250,7 +248,6 @@ You can also get an optional restart count with the on-failure policy as follows
 docker container run --restart=on-failure:3 -d -i -t ubuntu /bin/bash
 ```
 
-
 ### Getting privileged access inside a container
 Linux divides privileges that are traditionally associated with superusers into distinct units, known as capabilities (run man capabilities on a Linux-based system), which can be
 independently enabled and disabled.
@@ -290,24 +287,105 @@ $ docker container run --device=/dev/sda:/dev/xvdc -i -t ubuntu /bin/bash
 
 ### Injecting a new process into a running container
 You can inject a process inside a running container with the following command:
-```
+```bash
 docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
 ```
 Let's start an ubuntu container and then inject bash into it:
-```
+```bash
 ID=$(docker container run -d redis)
 docker container exec -it $ID /bin/bash
 ```
 The exec command enters the namespace of the container and starts the new process.
 
-
 ### Reading a container's metadata
 To inspect a container, run the following command:
-```
+```bash
 docker container inspect [OPTIONS] CONTAINER [CONTAINER...]
 ```
 We'll start a container and then inspect it, like so:
-```
+```bash
 ID=$(docker container run -d -i ubuntu /bin/bash)
 docker container inspect $ID
+```
+
+The following command will give us an IP address for the container:
+```bash
+docker container inspect --format='{{.NetworkSettings.IPAddress}}' container_name
+172.17.0.2
+```
+
+### Labeling and filtering containers
+Labels attached to images also get applied to containers that are started using those images. We can also attach labels to containers while starting them. Having labeled an image or a container, the labels can later be used for filtering or selection purposes.
+
+Run a normal container without label
+```bash
+~ $ docker run --name=redis_normal redis date
+Sat Jan 29 10:55:28 UTC 2022
+```
+
+Run a container with label
+```bash
+~ $ docker run --name=redis_label --label com.example.container=redis-container redis date
+Sat Jan 29 10:56:07 UTC 2022
+```
+
+Check both containers
+```bash
+~ $ docker ps -a
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS                      PORTS     NAMES
+9821948a72d9   redis     "docker-entrypoint.s…"   2 seconds ago    Exited (0) 1 second ago               redis_label
+bbe44961b6a1   redis     "docker-entrypoint.s…"   41 seconds ago   Exited (0) 40 seconds ago             redis_normal
+```
+
+Let's check the meta data of both the containers
+```bash
+~ $ docker container inspect --format '{{json .Config.Labels}}' redis_normal
+{}
+~ $ docker container inspect --format '{{json .Config.Labels}}' redis_label
+{"com.example.container":"redis-container"}
+```
+
+Filter the containers based on label
+```bash
+~ $ docker container ls -a --filter label=com.example.container=redis-container
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS                     PORTS     NAMES
+9821948a72d9   redis     "docker-entrypoint.s…"   3 minutes ago   Exited (0) 3 minutes ago             redis_label
+```
+
+### Reaping a zombie inside a container
+On Linux (and all Unix-like) operating systems, when a process exits, all the resources associated with that process are released with the exception of its entry in the process table. This entry in the process table is kept until the parent process reads the entry to learn about the exit status of its child. This transient state of a process is called a zombie. As soon as the parent process reads the entry, the zombie process is removed from the process table, and
+this is called reaping. If the parent process exits before the child process, the init process (PID 1) adopts the child process (PID 1) and it eventually reaps adopted child processes when they exit:
+
+```
+~ $ pstree
+systemd─┬─ModemManager───2*[{ModemManager}]
+        ├─NetworkManager───2*[{NetworkManager}]
+        ├─accounts-daemon───2*[{accounts-daemon}]
+        ├─acpid
+        ├─apache2───2*[apache2───26*[{apache2}]]
+```
+`systemd` is a variant of the `init` system and is adopted by many Linux distributions. `systemd` is the `init` process or `PID 1`.
+
+The Docker engine creates a new **PID namespace** for each docker container, thus the first process inside the container is mapped to **PID 1**. Docker is designed to run one process per container and usually the process
+running inside the containers doesn't create child processes. However, if the process inside the container creates child processes, then an `init` system is needed to reap zombie processes. In this recipe, we will look at how to configure an `init` process for our container to reap zombie processes.
+
+You can launch a container with the init process using the `--init` option of the Docker container run command, as shown in the following syntax:
+```
+docker container run --init [OPTIONS] IMAGE [COMMAND] [ARG...]
+```
+
+Without `--init` flag the process are invoked directly.
+```bash
+~ $ docker container run --rm alpine pstree -p
+pstree(1)
+~ $ docker container run --rm alpine sh -c "pstree -p"
+pstree(1)
+```
+
+With `--init` flag the process are invoked are headed by init process.
+```bash
+~ $ docker container run --rm --init alpine pstree -p
+docker-init(1)---pstree(8)
+~ $ docker container run --rm --init alpine sh -c "pstree -p"
+docker-init(1)---pstree(8)
 ```
