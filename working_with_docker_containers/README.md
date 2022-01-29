@@ -231,3 +231,83 @@ docker container prune [OPTIONS]
 The Docker daemon will iterate through containers that are not running and will remove them.
 
 ### Setting the restart policy on a container
+You can set the restart policy using the following syntax:
+```
+$ docker container run --restart=POLICY [OPTIONS] IMAGE[:TAG] [COMMAND] [ARG...]
+```
+Here is an example of using the preceding command:
+```
+docker container run --restart=always -d -i -t ubuntu /bin/bash
+```
+There are three restart policies to choose from:
+- `no`: This does not start the container if it dies
+- `on-failure`: This restarts the container if it fails with a nonzero exit code
+- `always`: This always restarts the container without worrying about the return
+code
+
+You can also get an optional restart count with the on-failure policy as follows:
+```
+docker container run --restart=on-failure:3 -d -i -t ubuntu /bin/bash
+```
+
+
+### Getting privileged access inside a container
+Linux divides privileges that are traditionally associated with superusers into distinct units, known as capabilities (run man capabilities on a Linux-based system), which can be
+independently enabled and disabled.
+
+Docker starts containers with limited capabilities. With privileged access inside the container, we allocate more capabilities to perform operations that are normally done by the root user.
+
+Inside a container
+```
+/home # mount --bind /home/ /mnt/
+mount: permission denied (are you root?)
+```
+
+To use privileged mode, use the following command:
+```
+docker container run --privileged [OPTIONS] IMAGE [COMMAND] [ARG...]
+```
+Now, let's try the preceding example with privileged access:
+```
+docker container run --privileged -i -t ubuntu /bin/bash
+```
+This provides almost all capabilities inside the container. This mode causes security risks as containers can get root-level access on the Docker host. two new flags called `--cap-add` and `--cap-del` have been added to give fine-grained control inside a container. For example, to prevent any `chown` inside the container, use the following command:
+```bash
+docker container run --cap-drop=CHOWN [OPTIONS] IMAGE [COMMAND][ARG...]
+```
+
+### Accessing the host device inside a container
+we can give access of the host device to a container with the `--device` option, following the run command.
+
+You can give access of a host device to the container using the following syntax:
+```
+docker container run --device=<Host Device>:<Container DeviceMapping>:<Permissions> [OPTIONS] IMAGE [COMMAND] [ARG...]
+```
+Here is an example of using the preceding command:
+```
+$ docker container run --device=/dev/sda:/dev/xvdc -i -t ubuntu /bin/bash
+```
+
+### Injecting a new process into a running container
+You can inject a process inside a running container with the following command:
+```
+docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+```
+Let's start an ubuntu container and then inject bash into it:
+```
+ID=$(docker container run -d redis)
+docker container exec -it $ID /bin/bash
+```
+The exec command enters the namespace of the container and starts the new process.
+
+
+### Reading a container's metadata
+To inspect a container, run the following command:
+```
+docker container inspect [OPTIONS] CONTAINER [CONTAINER...]
+```
+We'll start a container and then inspect it, like so:
+```
+ID=$(docker container run -d -i ubuntu /bin/bash)
+docker container inspect $ID
+```
