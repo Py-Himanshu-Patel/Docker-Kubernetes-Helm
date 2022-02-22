@@ -95,8 +95,4 @@ It is recommended that you set up some form of MAC on the Docker host, either th
 
 We use `Multi Category Security (MCS)` enforcement to protect one container from another, which is based on `Multi Level Security (MLS)`. When a container is launched, the Docker daemon picks a random MCS label, for example, `s0:c41,c717` and saves it with the container metadata. When any container process starts, the Docker daemon tells the kernel to apply the correct MCS label. As the MCS label is saved in the metadata, if the container restarts, it gets the same MCS label.
 
-1. Run the following command to make sure SELinux is enabled:
-```bash
-$ sudo setenforce 1
-$ getenforce
-```
+Refer Book for more.
