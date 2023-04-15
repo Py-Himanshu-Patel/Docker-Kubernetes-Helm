@@ -1,2 +1,0 @@
-# Docker Performance
-Refer Book
