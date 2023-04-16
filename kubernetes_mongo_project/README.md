@@ -14,6 +14,7 @@ Mongo DB Internal Service ->
 Mongo DB Pod  
 
 ```mermaid
+graph TD;
 Web Browser  -->  Mongo Express External Service; 
 Mongo Express External Service -->  Mongo Express Pod;
 Mongo Express Pod -->  Mongo DB Internal Service;
