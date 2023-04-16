@@ -10,4 +10,6 @@
 6. [Docker Orchestration and Hosting a Platform](docker_orchestration/README.md)
 
 ## Index - Kubernetes
-6. [Kubernetes Installation](kubernetes_install/README.md)
+1. [Kubernetes Installation](kubernetes_install/README.md)
+2. [Kubernetes Deployment and Basics](kubernetes_basics/README.md)
+3. [Kubernetes MongoDB Setup Demo](kubernetes_mongo_project/README.md)
