@@ -1,0 +1,64 @@
+# deployment yaml config
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  mongo-express
+  labels:
+    app:  mongo-express
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: mongo-express
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express        
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret      # choose this file
+              key: mongo-root-username  # choose this variable
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-secret
+              key: mongo-root-password
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom:
+            # below name of configMap is not based on file name of config 
+            # but the name assigned to config inside the config file          
+            configMapKeyRef:
+              name: mongodb-configmap
+              key: database_url
+
+# 3 - below is syntax for new doc start in same yaml file 
+# - above is config for deployment and below is config for service 
+---
+
+# service yaml config
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-express-service
+spec:
+  selector:
+    app: mongo-express
+  # this type (LoadBalancer) makes service external so that we can hit this service from our 
+  # localhost or internet if deployed on server, thus an external IP is assigned to service
+  # to accept external requests
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8081       # this is port for service, on which request should come
+      targetPort: 8081 # this is port which pod/container expose
+                        # this sould match the containerPort in deploy config
+                        # because service forward request from port to targetPort on pod
+      nodePort: 30001   # this is the public port for public IP, must btw 30k to 32767
