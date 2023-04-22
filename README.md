@@ -13,3 +13,4 @@
 1. [Kubernetes Installation](kubernetes_install/README.md)
 2. [Kubernetes Deployment and Basics](kubernetes_basics/README.md)
 3. [Kubernetes MongoDB Setup Demo](kubernetes_mongo_project/README.md)
+4. [Kubernetes Namespaces](kubernetes_namespaces/README.md)

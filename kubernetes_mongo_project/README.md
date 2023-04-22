@@ -109,6 +109,19 @@ data:
   database_url: mongodb-service
 ```
 
+```bash
+# this fetch result from default namespace
+$ k get configmap
+NAME                DATA   AGE
+kube-root-ca.crt    1      6d13h
+mongodb-configmap   1      10h
+# this fetch result from given namespace (default here)
+$ k get configmap -n default
+NAME                DATA   AGE
+kube-root-ca.crt    1      6d13h
+mongodb-configmap   1      11h
+```
+
 After applying both the files - Configmap and then Mongo Express service we can see the IP's assigned to services
 ```bash
 $ kubectl get services
