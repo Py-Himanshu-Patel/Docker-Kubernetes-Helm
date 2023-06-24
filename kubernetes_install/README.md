@@ -24,14 +24,7 @@ Kubernetes can be installed to VMs, physical machines, and the cloud. In this re
 
 Refer this video: https://www.youtube.com/watch?v=qG7FGVWijeM
 
-1. Install the latest VirtualBox (Refer for more https://itslinuxfoss.com/virtualbox-ubuntu22-04/)
-	```bash
-	$ sudo apt install virtualbox
-	# BELOW OPTIONAL
-	$ wget https://download.virtualbox.org/virtualbox/6.1.32/Oracle_VM_VirtualBox_Extension_Pack-6.1.32.vbox-extpack
-
-	$ sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-6.1.32.vbox-extpack
-	```
+1. Don't install VirtualBox rather go with `Docker` as container/virtual machine manager. [Refer Documentation](https://docs.docker.com/engine/install/ubuntu/).
 2. VT-x or AMD-v virtualization must be enabled in your computer’s BIOS.
 3. Install Kubectl on host system (Refer for more: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 )
@@ -49,7 +42,7 @@ Refer this video: https://www.youtube.com/watch?v=qG7FGVWijeM
 
 5. To create a new deployment, you would use the `kubctl run` command. Enter the following command to start an echo web service and refer the below screenshot:
 	```bash
-	$ minikube start --vm-driver=virtualbox
+	$ minikube start --driver=docker
 
 	$ kubectl run hello-minikube --image=k8s.gcr.io/echoserver:1.4 --port=8080
 	
